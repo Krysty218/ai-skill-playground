@@ -62,33 +62,43 @@ export function DocumentSummarization({ className }: DocumentSummarizationProps)
 
     setIsSummarizing(true)
     try {
-      // Simulate API call for demo
-      await new Promise(resolve => setTimeout(resolve, 3000))
+      const formData = new FormData()
       
-      // Mock results for demonstration
-      const mockResult: SummaryResult = {
+      if (inputType === 'file' && file) {
+        formData.append('file', file)
+      } else if (inputType === 'url' && url) {
+        formData.append('url', url)
+      }
+
+      const response = await fetch('/api/document-analysis', {
+        method: 'POST',
+        body: formData,
+      })
+
+      if (!response.ok) {
+        throw new Error('Summarization failed')
+      }
+
+      const data = await response.json()
+      
+      // Transform API response to match UI format
+      const result: SummaryResult = {
         title: inputType === 'file' ? file?.name.replace(/\.[^/.]+$/, "") || "Document" : "Web Article",
-        summary: "This document discusses the fundamentals of artificial intelligence and machine learning technologies. It covers key concepts including neural networks, deep learning algorithms, and practical applications in various industries. The content explores both the opportunities and challenges presented by AI implementation, with particular focus on ethical considerations and future development trends.",
-        keyPoints: [
-          "Introduction to AI and ML fundamentals",
-          "Neural networks and deep learning explained",
-          "Real-world applications across industries",
-          "Ethical considerations in AI development",
-          "Future trends and technological advancement",
-          "Implementation challenges and solutions"
-        ],
-        wordCount: 2847,
+        summary: data.summary,
+        keyPoints: data.keyPoints || [],
+        wordCount: data.metadata?.wordCount || 0,
         source: inputType === 'file' ? 'Document Upload' : url,
         metadata: {
-          pages: inputType === 'file' ? 12 : undefined,
-          format: inputType === 'file' ? file?.type : 'web',
-          language: 'English'
+          pages: data.metadata?.pages,
+          format: data.metadata?.type,
+          language: data.metadata?.language || 'English'
         }
       }
       
-      setResult(mockResult)
+      setResult(result)
       toast.success("Summarization completed successfully!")
     } catch (error) {
+      console.error('Summarization error:', error)
       toast.error("Summarization failed. Please try again.")
     } finally {
       setIsSummarizing(false)

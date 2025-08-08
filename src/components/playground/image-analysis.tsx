@@ -56,24 +56,23 @@ export function ImageAnalysis({ className }: ImageAnalysisProps) {
 
     setIsAnalyzing(true)
     try {
-      // Simulate API call for demo
-      await new Promise(resolve => setTimeout(resolve, 2500))
-      
-      // Mock results for demonstration
-      const mockResult: AnalysisResult = {
-        description: "This image shows a modern office workspace with a sleek desk setup. The scene includes a laptop computer, a coffee cup, some books, and office supplies arranged neatly on a wooden desk. Natural light streams in from a window, creating a bright and productive atmosphere. The overall aesthetic is minimalist and professional.",
-        confidence: 0.92,
-        details: {
-          objects: ["laptop", "coffee cup", "books", "desk", "window", "office supplies"],
-          colors: ["brown", "white", "black", "blue", "natural lighting"],
-          mood: "professional and calm",
-          composition: "well-organized workspace with natural lighting"
-        }
+      const formData = new FormData()
+      formData.append('image', file)
+
+      const response = await fetch('/api/image-analysis', {
+        method: 'POST',
+        body: formData,
+      })
+
+      if (!response.ok) {
+        throw new Error('Analysis failed')
       }
-      
-      setResult(mockResult)
+
+      const result = await response.json()
+      setResult(result)
       toast.success("Image analysis completed!")
     } catch (error) {
+      console.error('Analysis error:', error)
       toast.error("Analysis failed. Please try again.")
     } finally {
       setIsAnalyzing(false)

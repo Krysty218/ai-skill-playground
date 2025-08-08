@@ -47,22 +47,23 @@ export function ConversationAnalysis({ className }: ConversationAnalysisProps) {
 
     setIsAnalyzing(true)
     try {
-      // Simulate API call for demo
-      await new Promise(resolve => setTimeout(resolve, 3000))
-      
-      // Mock results for demonstration
-      const mockResult: AnalysisResult = {
-        transcript: "Welcome to our meeting today. We'll be discussing the quarterly results and future plans for the company. Thank you all for joining us. Let's start with the financial overview for this quarter.",
-        diarization: [
-          { speaker: "Speaker 1", text: "Welcome to our meeting today. We'll be discussing the quarterly results and future plans for the company.", timestamp: "00:00" },
-          { speaker: "Speaker 2", text: "Thank you all for joining us. Let's start with the financial overview for this quarter.", timestamp: "00:15" }
-        ],
-        summary: "Meeting discussion about quarterly results and future company plans, with financial overview as the starting topic."
+      const formData = new FormData()
+      formData.append('audio', file)
+
+      const response = await fetch('/api/conversation-analysis', {
+        method: 'POST',
+        body: formData,
+      })
+
+      if (!response.ok) {
+        throw new Error('Analysis failed')
       }
-      
-      setResult(mockResult)
+
+      const result = await response.json()
+      setResult(result)
       toast.success("Analysis completed successfully!")
     } catch (error) {
+      console.error('Analysis error:', error)
       toast.error("Analysis failed. Please try again.")
     } finally {
       setIsAnalyzing(false)
